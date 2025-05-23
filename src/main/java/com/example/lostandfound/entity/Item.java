@@ -21,6 +21,6 @@ public class Item {
     private User reportedBy; // Who reported the item
 }
 
-enum ItemStatus {
+public enum ItemStatus {
     LOST, FOUND, CLAIMED
 }

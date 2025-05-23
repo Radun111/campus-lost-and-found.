@@ -1,6 +1,7 @@
 package com.example.lostandfound.repository;
 
 import com.example.lostandfound.entity.Item;
+import com.example.lostandfound.entity.ItemStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
