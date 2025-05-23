@@ -2,6 +2,9 @@ package com.example.lostandfound.controller;
 
 import com.example.lostandfound.dto.AuthRequest;
 import com.example.lostandfound.dto.AuthResponse;
+import com.example.lostandfound.dto.RegisterRequest;
+import com.example.lostandfound.entity.User;
+import com.example.lostandfound.service.UserService;
 import com.example.lostandfound.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -24,24 +27,36 @@ public class AuthController {
     @Autowired
     private UserDetailsService userDetailsService;
 
+    @Autowired
+    private UserService userService;
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody RegisterRequest registerRequest) {
+        try {
+            User user = userService.registerUser(registerRequest);
+            return ResponseEntity.ok("User registered successfully!");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest authRequest) throws Exception {
         try {
-            // Authenticates user credentials
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             authRequest.getUsername(),
-                            authRequest.getPassword())
+                            authRequest.getPassword()
+                    )
             );
         } catch (Exception e) {
-            throw new Exception("Incorrect credentials", e);
+            throw new Exception("Incorrect username or password", e);
         }
 
-        // Loads user and generates token
         final UserDetails userDetails = userDetailsService
                 .loadUserByUsername(authRequest.getUsername());
         final String jwt = jwtUtil.generateToken(userDetails);
 
-        return ResponseEntity.ok(new AuthResponse(jwt));
+        return ResponseEntity.ok(new AuthResponse(jwt)); // This will now work
     }
 }
