@@ -13,6 +13,10 @@ import org.springframework.web.bind.annotation.*;
 public class ItemController {
     private final ItemService itemService;
 
+    public ItemController(ItemService itemService) {
+        this.itemService = itemService;
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ItemResponse reportItem(@RequestBody ItemRequest request) {
@@ -22,5 +26,10 @@ public class ItemController {
     @GetMapping("/{id}")
     public ItemResponse getItem(@PathVariable Long id) {
         return itemService.getItemById(id);
+    }
+
+    @GetMapping("/search")
+    public List<ItemResponse> searchItems(@RequestBody ItemSearchCriteria criteria) {
+        return itemService.searchItems(criteria);
     }
 }
