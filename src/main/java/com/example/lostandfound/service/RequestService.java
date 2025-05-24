@@ -20,26 +20,30 @@ public class RequestService {
     private final RequestRepository requestRepository;
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final EmailService emailService;
 
     public RequestResponse createRequest(RequestDto requestDto) {
-        // 1. Validate item exists
+        // Validate item exists and is not already claimed
         Item item = itemRepository.findById(requestDto.getItemId())
                 .orElseThrow(() -> new ResourceNotFoundException("Item not found with id: " + requestDto.getItemId()));
 
-        // 2. Validate user exists
+        if (item.getStatus() == ItemStatus.CLAIMED) {
+            throw new IllegalStateException("Item is already claimed");
+        }
+
+        // Validate user exists
         User requester = userRepository.findById(requestDto.getRequesterId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + requestDto.getRequesterId()));
 
-        // 3. Create and save request
-        Request request = new Request();
-        request.setItem(item);
-        request.setRequester(requester);
-        request.setStatus(RequestStatus.PENDING); // Default status
-        request.setRequestDate(LocalDateTime.now()); // Auto timestamp
+        // Create and save request
+        Request request = Request.builder()
+                .item(item)
+                .requester(requester)
+                .status(RequestStatus.PENDING)
+                .requestDate(LocalDateTime.now())
+                .build();
 
         Request savedRequest = requestRepository.save(request);
-
-        // 4. Return formatted response
         return mapToResponse(savedRequest);
     }
 
@@ -47,15 +51,34 @@ public class RequestService {
         Request request = requestRepository.findById(requestId)
                 .orElseThrow(() -> new ResourceNotFoundException("Request not found with id: " + requestId));
 
-        // Additional validation could be added here (e.g., only ADMIN can approve)
+        // Validate status transition
+        if (request.getStatus() == RequestStatus.APPROVED && newStatus != RequestStatus.APPROVED) {
+            throw new IllegalStateException("Cannot modify an approved request");
+        }
+
         request.setStatus(newStatus);
 
-        // If approved, update item status to CLAIMED
+        // Update item status if approved
         if (newStatus == RequestStatus.APPROVED) {
-            request.getItem().setStatus(ItemStatus.CLAIMED);
+            Item item = request.getItem();
+            item.setStatus(ItemStatus.CLAIMED);
+            itemRepository.save(item);
+
+            // Send approval email
+            emailService.sendEmail(
+                    request.getRequester().getEmail(),
+                    "Claim Approved",
+                    "Your claim for " + item.getName() + " has been approved!"
+            );
         }
 
         return mapToResponse(requestRepository.save(request));
+    }
+
+    public RequestResponse getRequestById(Long requestId) {
+        Request request = requestRepository.findById(requestId)
+                .orElseThrow(() -> new ResourceNotFoundException("Request not found with id: " + requestId));
+        return mapToResponse(request);
     }
 
     private RequestResponse mapToResponse(Request request) {
