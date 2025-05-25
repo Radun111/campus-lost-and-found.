@@ -1,26 +1,25 @@
 package com.example.lostandfound.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 public class Item {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // Auto-generated unique ID
+    private Long id;
 
-    private String name; // Item name (e.g., "Wallet", "Laptop")
-    private String description; // Detailed description
-    private String locationFound; // Where item was found
+    private String name;
+    private String description;
+    private String locationFound;
 
     @Enumerated(EnumType.STRING)
-    private ItemStatus status; // LOST, FOUND, CLAIMED
+    private ItemStatus status;
 
     @ManyToOne
-    private User reportedBy; // Who reported the item
-}
-
-public enum ItemStatus {
-    LOST, FOUND, CLAIMED
+    private User reportedBy;
 }

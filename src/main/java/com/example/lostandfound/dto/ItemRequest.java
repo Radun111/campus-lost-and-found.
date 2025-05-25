@@ -7,6 +7,6 @@ public class ItemRequest {
     private String name;
     private String description;
     private String locationFound;
-    private String status; // Frontend sends as string
-    private Long reportedById; // Who's reporting this item
+    private String status;
+    private Long reportedById; // Must match exactly what you're calling in ItemService
 }
