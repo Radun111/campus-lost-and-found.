@@ -13,11 +13,9 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/requests")
 @RequiredArgsConstructor
 public class RequestController {
-    private final RequestService requestService;
 
-    public RequestController(RequestService requestService) {
-        this.requestService = requestService;
-    }
+    // This single field will automatically generate the constructor via Lombok
+    private final RequestService requestService;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -26,13 +24,13 @@ public class RequestController {
     }
 
     @PatchMapping("/{requestId}/approve")
-    @PreAuthorize("hasRole('ADMIN')") // Only admins can approve
+    @PreAuthorize("hasRole('ADMIN')")
     public RequestResponse approveRequest(@PathVariable Long requestId) {
         return requestService.updateRequestStatus(requestId, RequestStatus.APPROVED);
     }
 
     @PatchMapping("/{requestId}/reject")
-    @PreAuthorize("hasRole('ADMIN')") // Only admins can reject
+    @PreAuthorize("hasRole('ADMIN')")
     public RequestResponse rejectRequest(@PathVariable Long requestId) {
         return requestService.updateRequestStatus(requestId, RequestStatus.REJECTED);
     }

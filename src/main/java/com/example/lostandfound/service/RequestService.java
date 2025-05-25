@@ -9,6 +9,7 @@ import com.example.lostandfound.repository.RequestRepository;
 import com.example.lostandfound.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -22,16 +23,17 @@ public class RequestService {
     private final UserRepository userRepository;
     private final EmailService emailService;
 
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public RequestResponse createRequest(RequestDto requestDto) {
         // Validate item exists and is not already claimed
         Item item = itemRepository.findById(requestDto.getItemId())
                 .orElseThrow(() -> new ResourceNotFoundException("Item not found with id: " + requestDto.getItemId()));
 
         if (item.getStatus() == ItemStatus.CLAIMED) {
-            throw new IllegalStateException("Item is already claimed");
+            throw new IllegalStateException("Item already claimed");
         }
 
-        // Validate user exists
+        // Validate requester exists
         User requester = userRepository.findById(requestDto.getRequesterId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + requestDto.getRequesterId()));
 
@@ -51,24 +53,15 @@ public class RequestService {
         Request request = requestRepository.findById(requestId)
                 .orElseThrow(() -> new ResourceNotFoundException("Request not found with id: " + requestId));
 
-        // Validate status transition
-        if (request.getStatus() == RequestStatus.APPROVED && newStatus != RequestStatus.APPROVED) {
-            throw new IllegalStateException("Cannot modify an approved request");
-        }
-
         request.setStatus(newStatus);
 
-        // Update item status if approved
+        // If approved, mark item as claimed
         if (newStatus == RequestStatus.APPROVED) {
-            Item item = request.getItem();
-            item.setStatus(ItemStatus.CLAIMED);
-            itemRepository.save(item);
-
-            // Send approval email
+            request.getItem().setStatus(ItemStatus.CLAIMED);
             emailService.sendEmail(
                     request.getRequester().getEmail(),
                     "Claim Approved",
-                    "Your claim for " + item.getName() + " has been approved!"
+                    "Your claim for " + request.getItem().getName() + " has been approved!"
             );
         }
 

@@ -1,11 +1,14 @@
 package com.example.lostandfound.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
+
 import java.time.LocalDateTime;
-import com.example.lostandfound.entity.RequestStatus;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 public class Request {
     @Id
@@ -13,14 +16,13 @@ public class Request {
     private Long id;
 
     @ManyToOne
-    private Item item; // Which item is being claimed
+    private Item item;
 
     @ManyToOne
-    private User requester; // Who is making the claim
+    private User requester;
 
-    private LocalDateTime requestDate = LocalDateTime.now();
+    private LocalDateTime requestDate;
 
     @Enumerated(EnumType.STRING)
-    private RequestStatus status = RequestStatus.PENDING;
+    private RequestStatus status;
 }
-

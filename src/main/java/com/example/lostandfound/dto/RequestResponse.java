@@ -1,13 +1,15 @@
 package com.example.lostandfound.dto;
 
+import lombok.Builder;
 import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
+@Builder
 public class RequestResponse {
-    private Long id;                   // Request ID
-    private String itemName;           // Name of requested item
-    private String requesterName;      // Username of requester
-    private LocalDateTime requestDate; // When request was made
-    private String status;             // PENDING/APPROVED/REJECTED
+    private Long id;
+    private String itemName;
+    private String requesterName;
+    private LocalDateTime requestDate;
+    private String status;
 }
