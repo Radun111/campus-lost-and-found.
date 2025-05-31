@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import java.nio.charset.StandardCharsets;
+import javax.crypto.SecretKey;
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
@@ -16,6 +16,7 @@ import java.util.function.Function;
 
 @Component
 public class JwtUtil {
+
     @Value("${jwt.secret}")
     private String secret;
 
@@ -26,7 +27,8 @@ public class JwtUtil {
 
     @PostConstruct
     public void init() {
-        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        // Generate a secure key with sufficient length
+        this.key = Jwts.SIG.HS256.key().build();
     }
 
     public String generateToken(UserDetails userDetails) {
@@ -64,13 +66,29 @@ public class JwtUtil {
 
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
-                .setSigningKey(key)  // Changed back to setSigningKey()
+                .verifyWith((SecretKey) key)
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     private Boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
+    }
+
+    @Value("${jwt.refresh-expiration}")
+    private Long refreshExpiration;
+
+    public String generateRefreshToken(UserDetails userDetails) {
+        return Jwts.builder()
+                .subject(userDetails.getUsername())
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + refreshExpiration))
+                .signWith(key)
+                .compact();
+    }
+
+    public Long getRefreshTokenExpirationMs() {
+        return refreshExpiration;
     }
 }
