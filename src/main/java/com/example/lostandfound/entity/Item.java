@@ -3,6 +3,8 @@ package com.example.lostandfound.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -22,4 +24,8 @@ public class Item {
 
     @ManyToOne
     private User reportedBy;
+
+    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Request> requests;
+
 }
