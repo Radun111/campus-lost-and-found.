@@ -6,6 +6,7 @@ import com.example.lostandfound.dto.ItemSearchCriteria;
 import com.example.lostandfound.service.ItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,8 +28,17 @@ public class ItemController {
         return itemService.getItemById(id);
     }
 
-    @GetMapping("/search")
+
+    @PostMapping("/search")
     public List<ItemResponse> searchItems(@RequestBody ItemSearchCriteria criteria) {
         return itemService.searchItems(criteria);
     }
-}
+
+        @DeleteMapping("/{id}")
+        @PreAuthorize("hasRole('ADMIN')") // Or "hasAnyRole('ADMIN', 'STAFF')" if needed
+        @ResponseStatus(HttpStatus.NO_CONTENT)
+        public void deleteItem(@PathVariable Long id) {
+            itemService.deleteItem(id);
+        }
+
+    }

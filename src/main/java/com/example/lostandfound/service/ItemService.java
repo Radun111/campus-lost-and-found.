@@ -56,4 +56,10 @@ public class ItemService {
                 .reportedBy(item.getReportedBy().getUsername())
                 .build();
     }
+    public void deleteItem(Long id) {
+        Item item = itemRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Item not found with id: " + id));
+        itemRepository.delete(item);
+    }
+
 }
