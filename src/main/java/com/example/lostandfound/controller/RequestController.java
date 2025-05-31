@@ -24,10 +24,12 @@ public class RequestController {
     }
 
     @PatchMapping("/{requestId}/approve")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
     public RequestResponse approveRequest(@PathVariable Long requestId) {
         return requestService.updateRequestStatus(requestId, RequestStatus.APPROVED);
     }
+
+
 
     @PatchMapping("/{requestId}/reject")
     @PreAuthorize("hasRole('ADMIN')")
